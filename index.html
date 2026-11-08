@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Truck Rush</title>
+    <style>
+      html, body { margin: 0; padding: 0; width: 100%; height: 100%; height: 100dvh; overflow: hidden; background: #0F0C2A;
+                   overscroll-behavior: none; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+      #unity-canvas { position: fixed; left: 0; top: 0; width: 100%; height: 100%; display: block; background: #0F0C2A; outline: none; touch-action: none; }
+      @font-face{font-family:'GFLFredoka';src:url('TemplateData/Fredoka-SemiBold.ttf') format('truetype');font-weight:600}
+      @font-face{font-family:'GFLFredoka';src:url('TemplateData/Fredoka-Bold.ttf') format('truetype');font-weight:700}
+      #gfl-preloader{position:fixed;inset:0;z-index:10;background:#0F0C2A;overflow:hidden;font-family:'GFLFredoka','Segoe UI',Roboto,Arial,sans-serif;font-weight:600;user-select:none;-webkit-user-select:none;transition:opacity .35s}
+      #gfl-preloader.hide{opacity:0;pointer-events:none}
+      #gfl-preloader .bg{position:absolute;inset:0;background:radial-gradient(circle at 25% 30%,rgba(83,74,183,.85) 0,transparent 45%),radial-gradient(circle at 80% 75%,rgba(153,53,86,.75) 0,transparent 40%),radial-gradient(circle at 70% 15%,rgba(15,110,86,.75) 0,transparent 30%)}
+      #gfl-preloader .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:3vw 3vw}
+      @keyframes gflf{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-14px) rotate(12deg)}}
+      @keyframes gflb{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+      @keyframes gfls{0%{left:-30%}100%{left:110%}}
+      @keyframes gflr{to{transform:rotate(360deg)}}
+      #gfl-preloader .f{position:absolute;animation:gflf 4s ease-in-out infinite}
+      #gfl-preloader .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+      #gfl-preloader .card{padding:3vmin 4.6vmin;border-radius:3vmin;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);display:flex;align-items:center;gap:2.4vmin;max-width:92vw;box-sizing:border-box}
+      #gfl-preloader .tile{flex:none;animation:gflb 1.6s ease-in-out infinite;width:13vmin;height:13vmin;border-radius:3.6vmin;background:#FFC24B;display:flex;align-items:center;justify-content:center;box-shadow:0 1vmin 3vmin rgba(255,194,75,.35)}
+      #gfl-preloader .title{font-size:8.9vmin;font-weight:700;line-height:1;color:#fff;white-space:nowrap}
+      #gfl-preloader .tag{font-size:2.4vmin;letter-spacing:.7vmin;color:#CECBF6;margin-top:1vmin;white-space:nowrap}
+      #gfl-preloader .game{margin-top:4.2vmin;font-size:max(22px,6.4vmin);font-weight:700;letter-spacing:.3vmin;color:#fff;text-transform:uppercase;line-height:1;white-space:nowrap;text-shadow:0 .6vmin 2vmin rgba(0,0,0,.45)}
+      #gfl-preloader .game span{color:#FF3B30}
+      #gfl-preloader .sub{margin-top:1.2vmin;font-size:max(12px,2vmin);letter-spacing:.4vmin;color:#CECBF6;text-transform:uppercase}
+      #gfl-preloader .prog{width:58vw;max-width:1110px;min-width:260px;margin-top:4.5vmin}
+      #gfl-preloader .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2vmin;color:#fff;font-size:max(13px,2.6vmin)}
+      #gfl-preloader .spin{display:inline-block;width:2.4vmin;height:2.4vmin;min-width:12px;min-height:12px;box-sizing:border-box;border:.3vmin solid #5DCAA5;border-top-color:transparent;border-radius:50%;animation:gflr .8s linear infinite;margin-right:1vmin;vertical-align:-.3vmin}
+      #gfl-preloader .pct{color:#FFC24B;font-weight:700;font-size:max(14px,3vmin)}
+      #gfl-preloader .track{position:relative;height:2.6vmin;min-height:12px;border-radius:1.3vmin;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);overflow:hidden;padding:2px}
+      #gfl-preloader .bar{position:relative;height:100%;width:0;border-radius:1vmin;background:linear-gradient(90deg,#5DCAA5,#FAC775,#F0997B);background-size:58vw 100%;box-shadow:0 0 1.4vmin rgba(250,199,117,.7);overflow:hidden;transition:width .25s}
+      #gfl-preloader .shine{position:absolute;top:0;bottom:0;width:30%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);animation:gfls 1.2s linear infinite}
+      #gfl-preloader .corner{position:absolute;bottom:2.2vmin;font-size:max(11px,2vmin);color:rgba(255,255,255,.45)}
+      #gfl-preloader #err{margin-top:2vmin;color:#ff6b6b;font-size:max(12px,1.8vmin);max-width:80vw;text-align:center;font-family:system-ui,sans-serif}
+      #warn { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); max-width: 90vw; padding: 8px 14px; border-radius: 6px;
+              background: rgba(20,24,32,0.92); color: #ffd23f; font: 13px system-ui, sans-serif; display: none; z-index: 10; }
+    </style>
+  </head>
+  <body>
+    <canvas id="unity-canvas" tabindex="0"></canvas>
+    <div id="gfl-preloader">
+      <div class="bg"></div><div class="grid"></div>
+      <div class="f" style="top:14%;left:10%;width:3vmin;height:3vmin;border-radius:.8vmin;background:#EF9F27"></div>
+      <div class="f" style="top:68%;left:14%;width:2.2vmin;height:2.2vmin;border-radius:50%;background:#5DCAA5;animation-delay:-1s"></div>
+      <div class="f" style="top:20%;right:12%;width:0;height:0;border-left:1.7vmin solid transparent;border-right:1.7vmin solid transparent;border-bottom:3vmin solid #ED93B1;animation-delay:-2s"></div>
+      <div class="f" style="top:72%;right:16%;width:2.6vmin;height:2.6vmin;border-radius:.7vmin;border:.35vmin solid #85B7EB;animation-delay:-3s"></div>
+      <div class="f" style="top:45%;left:5%;width:1.2vmin;height:1.2vmin;border-radius:50%;background:#FAC775;animation-delay:-1.5s"></div>
+      <div class="c">
+        <div class="card">
+          <div class="tile"><svg viewBox="0 0 100 100" width="78%" height="78%"><rect x="13.5" y="32.5" width="73" height="35" rx="17.5" fill="none" stroke="#0F0C2A" stroke-width="7"/><path d="M33 40.5v19M23.5 50h19" stroke="#0F0C2A" stroke-width="6.4" stroke-linecap="round"/><circle cx="61.5" cy="45.5" r="5" fill="#0F0C2A"/><circle cx="69.5" cy="54.5" r="5" fill="#0F0C2A"/></svg></div>
+          <div><div class="title">GameFun<span style="color:#FFC24B">Life</span></div><div class="tag">play &middot; smile &middot; repeat</div></div>
+        </div>
+        <div class="game">Truck <span>Rush</span></div>
+        <div class="sub">Highway truck racing</div>
+        <div class="prog">
+          <div class="row"><span><span class="spin"></span><span id="gfl-status">Loading game</span></span><span class="pct" id="gfl-pct">0%</span></div>
+          <div class="track"><div class="bar" id="gfl-bar"><div class="shine"></div></div></div>
+          <div id="err"></div>
+        </div>
+      </div>
+      <div class="corner" style="left:2.2vmin">Truck Rush</div>
+      <div class="corner" style="right:2.2vmin">&copy; GameFunLife</div>
+    </div>
+    <div id="warn"></div>
+    <script src="Build/Standalone.loader.js"></script>
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+      // Unity warnings/errors from the loader (e.g. missing WebGL 2): errors are shown on the loading screen, warnings briefly on top
+      function showBanner(msg, type) {
+        if (type === "error") { document.querySelector("#err").textContent = msg; return; }
+        var w = document.querySelector("#warn"); w.textContent = msg; w.style.display = "block";
+        setTimeout(function () { w.style.display = "none"; }, 5000);
+      }
+      var config = {
+        dataUrl: "Build/Standalone.data.unityweb",
+        frameworkUrl: "Build/Standalone.framework.js.unityweb",
+        codeUrl: "Build/Standalone.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "GameFunLife",
+        productName: "Truck Rush",
+        productVersion: "1.0.17",
+        showBanner: showBanner,
+        autoSyncPersistentDataPath: true,   // saves (PlayerPrefs / IndexedDB) sync automatically
+        matchWebGLToCanvasSize: true,
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 1.5)
+      };
+      var gflBar = document.getElementById("gfl-bar"), gflPct = document.getElementById("gfl-pct"), gflSt = document.getElementById("gfl-status");
+      var gflStates = ["Loading game", "Downloading", "Warming up", "Almost ready"], gflShown = 0;
+      function gflProgress(p) {
+        p = Math.max(0, Math.min(1, p || 0)); if (p < gflShown) return; gflShown = p;
+        gflBar.style.width = (p * 100) + "%"; gflPct.textContent = Math.round(p * 100) + "%"; gflSt.textContent = gflStates[Math.min(3, Math.floor(p * 4))];
+      }
+      function gflHide() { var l = document.getElementById("gfl-preloader"); if (!l) return; l.classList.add("hide"); setTimeout(function () { if (l.parentNode) l.parentNode.removeChild(l); }, 400); }
+      createUnityInstance(canvas, config, gflProgress).then(function (instance) {
+        window.unityInstance = instance;
+        gflProgress(1);
+        requestAnimationFrame(function () { requestAnimationFrame(gflHide); });
+        try { window.focus(); canvas.focus(); } catch (e) {}
+      }).catch(function (message) {
+        document.querySelector("#err").textContent = message;
+      });
+      // inside an iframe (game portals) the game must take keyboard focus when clicked / touched
+      function grabFocus() { try { window.focus(); canvas.focus(); } catch (e) {} }
+      canvas.addEventListener("pointerdown", grabFocus);
+      canvas.addEventListener("touchstart", grabFocus, { passive: true });
+      // game keys must not scroll the page or trigger browser shortcuts (text fields keep their keys)
+      var blocked = ["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," ","Spacebar","PageUp","PageDown","Home","End","F1","Backspace","Tab"];
+      window.addEventListener("keydown", function (e) {
+        var t = e.target && e.target.tagName;
+        if (t === "INPUT" || t === "TEXTAREA") return;
+        if (blocked.indexOf(e.key) >= 0) e.preventDefault();
+      }, { passive: false });
+      window.addEventListener("wheel", function (e) { e.preventDefault(); }, { passive: false });
+      document.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+      document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+    </script>
+  </body>
+</html>
