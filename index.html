@@ -89,6 +89,30 @@
         matchWebGLToCanvasSize: true,
         devicePixelRatio: Math.min(window.devicePixelRatio || 1, 1.5)
       };
+      // Texture build pick (optimized builds only). Desktop GPUs read DXT (S3TC) natively: they get the DXT build, as before.
+      // GPUs without DXT (phones) get the first format in gflMobileFormats that they support, from Build/<format>/,
+      // so Unity does not have to decode every texture on the CPU. Anything else keeps the DXT build (Unity decodes it,
+      // exactly like the original build). Testing override: ?tex=dxt|astc|etc2
+      var gflMobileFormats = ["etc2", "astc"];   // ETC2 first: crunched, so its download is close to DXT; every WebGL 2 phone GPU reads it
+      var gflTex = (function () {
+        var forced = (location.search.match(/[?&]tex=(dxt|astc|etc2)\b/) || [])[1];
+        if (forced) return forced;
+        try {
+          var probe = document.createElement("canvas"), gl = probe.getContext("webgl2");
+          if (!gl) return "dxt";
+          var ext = { astc: "WEBGL_compressed_texture_astc", etc2: "WEBGL_compressed_texture_etc" }, pick = "dxt";
+          if (!gl.getExtension("WEBGL_compressed_texture_s3tc"))
+            for (var i = 0; i < gflMobileFormats.length; i++) if (gl.getExtension(ext[gflMobileFormats[i]])) { pick = gflMobileFormats[i]; break; }
+          var lose = gl.getExtension("WEBGL_lose_context"); if (lose) lose.loseContext();   // free the probe context right away
+          return pick;
+        } catch (e) { return "dxt"; }
+      })();
+      window.gflTextureFormat = gflTex;
+      if (gflTex !== "dxt") {
+        ["dataUrl", "frameworkUrl", "codeUrl", "workerUrl", "memoryUrl", "symbolsUrl"].forEach(function (k) {
+          if (config[k]) config[k] = config[k].replace(/^Build\//, "Build/" + gflTex + "/");
+        });
+      }
       var gflBar = document.getElementById("gfl-bar"), gflPct = document.getElementById("gfl-pct"), gflSt = document.getElementById("gfl-status");
       var gflStates = ["Loading game", "Downloading", "Warming up", "Almost ready"], gflShown = 0;
       function gflProgress(p) {
